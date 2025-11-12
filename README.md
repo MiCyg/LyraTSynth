@@ -23,7 +23,17 @@ It uses an optocoupler connected to a UART pin of the microcontroller.
 	<img src="images/lyrat_and_midi.jpg" width="75%" />
 </p>
 
-## Project timeline
+## Framework
+
+Espressif provides an [Audio Development Framework](https://docs.espressif.com/projects/esp-adf/en/latest/get-started/) that includes various functions for audio processing — filters, equalizers, encoders, and so on. Unfortunately, most of these are geared toward playback and processing rather than sound generation.
+
+Because of that, I decided to use the [PlatformIO](https://platformio.org/) environment instead. I’ve found several good examples of audio generators developed within it, so it seems like a solid starting point for this project.
+
+## Hello World
+
+Yes – I still have a “Hello, World!” example :)
+
+# Project timeline
 
 - [X] **1 weeks** – Prepare the hardware for testing (solder the MIDI input)
 - [ ] **3 weeks** – Create a parser for MIDI parameter control
@@ -33,7 +43,5 @@ It uses an optocoupler connected to a UART pin of the microcontroller.
 - [ ] **1 week** – Test the device to identify any issues during continuous operation.
 - [ ] **1 week** – Prepare the presentation.
 
-## Hello World
 
-Yes – I still have a “Hello, World!” example :)
 
