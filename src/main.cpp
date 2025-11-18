@@ -1,37 +1,29 @@
 #include <Arduino.h>
 #include <ArduinoLog.h>
 #include <MIDI.h>
-// #include <freertos/FreeRTOS.h>
-// #include <freertos/task.h>
+#include <config/gpio.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 
-MIDI_CREATE_DEFAULT_INSTANCE();
-
-void midi_task()
+void midi_task(void *parameter) 
 {
-	
+	// Simple MIDI logger on terminal
+	static HardwareSerial MidiSerial(1);
+
+	MidiSerial.begin(31250, SERIAL_8N1, GPIO_MIDI_RX, GPIO_MIDI_TX);
+	MIDI_CREATE_INSTANCE(HardwareSerial, MidiSerial,  MIDI);
 	MIDI.begin(MIDI_CHANNEL_OMNI);
-	MIDI_CREATE_CUSTOM_INSTANCE(HardwareSerial, Serial, MIDI, DefaultSerialSettings);
-	
+
 	while (true) 
 	{
 		if (MIDI.read())
 		{
-			switch(MIDI.getType())
-			{
-				case midi::ControlChange:
-				{
-					byte control = MIDI.getData1();
-					byte value = MIDI.getData2();
-					Log.infoln("Control: %d, Value: %d", control, value);
-
-					break;
-				}
-				default:
-					break;
-			}
+			Log.infoln("Channel: %d, Type: %d, data1: %d, data2: %d", MIDI.getChannel(), MIDI.getType(), MIDI.getData1(), MIDI.getData2());
 		}
-		// vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+		// vTaskDelay(1);
+		yield();
 	}
 
 }
@@ -41,14 +33,20 @@ void midi_task()
 void setup()
 {
 	Serial.begin(115200);
+	
 	Log.begin(LOG_LEVEL_INFO, &Serial);
+	
+
+	pinMode(GPIO_LED_LYRAT, OUTPUT);
+	digitalWrite(GPIO_LED_LYRAT, HIGH);
 
 	Log.infoln("Hello world! Starting MIDI wrapper task...");
-	xTaskCreate(midi_task, "MIDI Wrapper", 8192, NULL, 1, NULL);
+	xTaskCreate(midi_task, "MIDI Wrapper", 8*1024, NULL, tskIDLE_PRIORITY, NULL);
 }
 
 void loop()
 {
 	delay(1000);
-	Log.infoln("Main loop alive");
+	digitalWrite(GPIO_LED_LYRAT, digitalRead(GPIO_LED_LYRAT) ^ 1);
+	// Log.infoln("Main loop alive %d", millis());
 }
