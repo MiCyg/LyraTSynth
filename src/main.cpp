@@ -8,7 +8,8 @@
 
 void midi_task(void *parameter) 
 {
-	// Simple MIDI logger on terminal
+	Log.infoln("Starting MIDI wrapper task...");
+	
 	static HardwareSerial MidiSerial(1);
 
 	MidiSerial.begin(31250, SERIAL_8N1, GPIO_MIDI_RX, GPIO_MIDI_TX);
@@ -28,8 +29,6 @@ void midi_task(void *parameter)
 
 }
 
-
-
 void setup()
 {
 	Serial.begin(115200);
@@ -40,7 +39,7 @@ void setup()
 	pinMode(GPIO_LED_LYRAT, OUTPUT);
 	digitalWrite(GPIO_LED_LYRAT, HIGH);
 
-	Log.infoln("Hello world! Starting MIDI wrapper task...");
+	
 	xTaskCreate(midi_task, "MIDI Wrapper", 8*1024, NULL, tskIDLE_PRIORITY, NULL);
 }
 
