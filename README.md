@@ -29,9 +29,14 @@ Espressif provides an [Audio Development Framework](https://docs.espressif.com/p
 
 Because of that, I decided to use the [PlatformIO](https://platformio.org/) environment instead. I’ve found several good examples of audio generators developed within it, so it seems like a solid starting point for this project.
 
-## Hello World
+## Modules
 
-Yes – I still have a “Hello, World!” example :)
+### MidiWrapper
+
+The `MidiWrapper` class is a singleton that encapsulates a serial interface for MIDI input and maintains a vector of MIDI CC mappings. Mappings can be created externally and then added to the class, making this approach more convenient. The class also provides a method to change the MIDI input channel.
+
+### AudioGenerator
+In future...
 
 # Project timeline
 
