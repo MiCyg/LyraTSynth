@@ -1,36 +1,94 @@
-#include <MidiWrapper.h>
+#include "MidiWrapper.h"
 #include <MIDI.h>
 
-static HardwareSerial MidiSerial = HardwareSerial(1);
-MIDI_CREATE_INSTANCE(HardwareSerial, MidiSerial,  MIDI);
 
-static int8_t gpio_rx = GPIO_NUM_23;
-static int8_t gpio_tx = GPIO_NUM_18;
+HardwareSerial midiSerial = HardwareSerial(1);
+MIDI_CREATE_INSTANCE(HardwareSerial, midiSerial, MIDI);
 
-
-void midiTask(void *parameter) 
+MidiWrapper::MidiWrapper() : gpioRx(-1), gpioTx(-1), taskHandle(nullptr) 
 {
-	Log.infoln("Starting MIDI wrapper task...");
-	MidiSerial.begin(31250, SERIAL_8N1, gpio_rx, gpio_tx);
+
+}
+
+MidiWrapper& MidiWrapper::getInstance() 
+{
+    static MidiWrapper instance;
+    return instance;
+}
+
+// Initialize with pins
+void MidiWrapper::begin(int8_t gpioRx, int8_t gpioTx) 
+{
+    if (!taskHandle)
+	{
+		this->gpioRx = gpioRx;
+		this->gpioTx = gpioTx;
+        xTaskCreate(taskEntry, "MIDI_Task", 8*1024, nullptr, tskIDLE_PRIORITY, &taskHandle);
+    }
+}
+
+void MidiWrapper::ChangeMidiChannel(uint8_t channel)
+{
+	MIDI.setInputChannel(channel);
+}
+
+void MidiWrapper::AddCCMapping(uint16_t midi_cc, String name="")
+{
+    ccMappings.push_back(new MidiCCVal(midi_cc, name)); 
+}
+
+void MidiWrapper::AddCCMapping(MidiCCVal *mapping)
+{
+    if(mapping != nullptr)
+	{
+        ccMappings.push_back(mapping);
+	}
+}
+
+
+uint16_t MidiWrapper::GetCCValue(uint16_t midi_cc)
+{
+    // ccMappings.push_front(MidiCCVal(midi_cc, name));
+	return 0;
+}
+
+uint16_t MidiWrapper::GetCCValue(String name)
+{
+	// ccMappings.push_front(MidiCCVal(midi_cc, name));
+	return 0;
+}
+
+// FreeRTOS task
+void MidiWrapper::taskEntry(void* parameter)
+{
+	MidiWrapper& instance = MidiWrapper::getInstance();
+	midiSerial.begin(31250, SERIAL_8N1, instance.gpioRx, instance.gpioTx);
 	MIDI.begin(MIDI_CHANNEL_OMNI);
 
-	while (true) 
+    Log.infoln("Starting MIDI task...");
+
+    while (true)
 	{
-		if (MIDI.read())
+        if (MIDI.read())
 		{
-			Log.infoln("Channel: %d, Type: %d, data1: %d, data2: %d", MIDI.getChannel(), MIDI.getType(), MIDI.getData1(), MIDI.getData2());
-		}
+			if(MIDI.getType() == midi::ControlChange)
+			{
+				int cc = MIDI.getData1();
+				int val = MIDI.getData2();
 
-		// vTaskDelay(1);
-		yield();
-	}
-
+				for(auto mapping : instance.ccMappings)  // mapping is a pointer
+				{
+					if(mapping->GetMidiCc() == cc)
+					{
+						if(mapping->Value != val)
+						{
+							mapping->Value = val;
+							Log.infoln("Received %s, Value: %d", mapping->GetName().c_str(), mapping->Value);
+						}
+					}
+				}
+			}
+        }
+        yield();
+    }
 }
-
-void MidiWrapperInit(int8_t rx_pin, int8_t tx_pin)
-{
-	gpio_rx = rx_pin;
-	gpio_tx = tx_pin;
-	xTaskCreate(midiTask, "MIDI wrapper", 8*1024, NULL, tskIDLE_PRIORITY, NULL);
-}
-

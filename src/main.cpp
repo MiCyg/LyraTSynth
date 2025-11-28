@@ -8,7 +8,8 @@
 
 
 
-
+MidiCCVal param1 = MidiCCVal(10, "Param1");
+MidiCCVal param2 = MidiCCVal(74, "Param2");
 
 void setup()
 {
@@ -19,12 +20,16 @@ void setup()
 	pinMode(GPIO_LED_LYRAT, OUTPUT);
 	digitalWrite(GPIO_LED_LYRAT, HIGH);
 	
-	MidiWrapperInit(GPIO_MIDI_RX, GPIO_MIDI_TX);
+	MidiWrapper::getInstance().begin(GPIO_MIDI_RX, GPIO_MIDI_TX);
 
+
+	MidiWrapper::getInstance().AddCCMapping(&param1);
+	MidiWrapper::getInstance().AddCCMapping(&param2);
 }
 
 void loop()
 {
-	delay(1000);
+	delay(100);
 	digitalWrite(GPIO_LED_LYRAT, digitalRead(GPIO_LED_LYRAT) ^ 1);
+	Log.info("Param1: %d, Param2: %d\n", param1.Value, param2.Value);
 }
