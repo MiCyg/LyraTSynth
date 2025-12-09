@@ -44,7 +44,6 @@ In future...
 - [X] **3 weeks** – Create a parser for MIDI parameter control
 - [ ] **3 weeks** – Implement the waveform generation library. This will be a class that generates successive audio buffers, which can be modulated in real time using the MIDI parser module.
 - [ ] **3 weeks** – Create the audio processing library and implement a filter controlled via the MIDI parser.
-- [ ] **3 weeks** – Extend the library by adding a reverb or delay effect with MIDI control.
 - [ ] **1 week** – Test the device to identify any issues during continuous operation.
 - [ ] **1 week** – Prepare the presentation.
 
